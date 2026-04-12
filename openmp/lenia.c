@@ -59,7 +59,7 @@ double *generate_kernel(double *K, const unsigned int size)
 }
 
 // Function to evolve Lenia
-double *evolve_lenia(const unsigned int rows, const unsigned int cols, const unsigned int steps, const double dt, const unsigned int kernel_size, const struct orbium_coo *orbiums, const unsigned int num_orbiums)
+double *evolve_lenia(const unsigned int rows, const unsigned int cols, const unsigned int steps, const double dt, const unsigned int kernel_size, const struct orbium_coo *orbiums, const unsigned int num_orbiums, const unsigned int strip_width)
 {
 
 #ifdef GENERATE_GIF
@@ -87,12 +87,14 @@ double *evolve_lenia(const unsigned int rows, const unsigned int cols, const uns
         world = place_orbium(world, rows, cols, orbiums[o].row, orbiums[o].col, orbiums[o].angle);
     }
 
+    double* world_strips = strip(world, rows, cols, kernel_size, strip_width);
+
     // Lenia Simulation
     for (unsigned int step = 0; step < steps; step++)
     {
         // Convolution
-        tmp = convolve2d(tmp, world, w, rows, cols, kernel_size, kernel_size);
-        
+        tmp = convolve2d(tmp, world_strips, w, rows, cols, kernel_size, kernel_size, strip_width);
+
         // Evolution
         for (unsigned int i = 0; i < rows; i++)
         {
