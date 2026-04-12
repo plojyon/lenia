@@ -48,3 +48,18 @@ Execution time: 18.162
 Execution time: 14.920
 ```
 average: 15.9036
+
+## CPU strips no reinitialization
+```
+➜  openmp git:(0912c29) gcc -O3 -lm -lnuma --openmp *.c -o a.out && ./a.out                                
+Execution time: 13.425
+➜  openmp git:(0912c29) gcc -O3 -lm -lnuma --openmp *.c -o a.out && ./a.out
+Execution time: 14.355
+➜  openmp git:(0912c29) gcc -O3 -lm -lnuma --openmp *.c -o a.out && ./a.out
+Execution time: 12.777
+➜  openmp git:(0912c29) gcc -O3 -lm -lnuma --openmp *.c -o a.out && ./a.out
+Execution time: 12.918
+➜  openmp git:(0912c29) gcc -O3 -lm -lnuma --openmp *.c -o a.out && ./a.out
+Execution time: 13.148
+```
+average: 13.3246
