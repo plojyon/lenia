@@ -6,57 +6,56 @@
 // For prettier indexing syntax
 #define w(r, c) (w[(r) * w_cols + (c)])
 #define input(r, c) (input[((r) % rows) * cols + ((c) % cols)])
+#define strips(r, c, s) (strips[(int)((s) * total_strip_px_count + (r) * real_strip_width + (c) + overlap)])
 
 // Function to perform convolution on input using kernel w
 // Note that the kernel is flipped for convolution as per definition, and we use modular indexing for toroidal world
-double *convolve2d(double *result, const double *input, const double *w, const unsigned int rows, const unsigned int cols, const unsigned int w_rows, const unsigned int w_cols)
+double *convolve2d(double *result, const double *input, const double *w, const unsigned int rows, const unsigned int cols, const unsigned int w_rows, const unsigned int w_cols, const unsigned int strip_width)
 {
     if (result == NULL || input == NULL || w == NULL) return NULL;
 
-    // divide image into strips for cache optimization
-    const unsigned int strip_width = 100;
-    const unsigned int overlap = floor(w_cols / 2);
-    const unsigned int real_strip_width = strip_width + 2*overlap;
-    const unsigned int n_strips = ceil(cols / (2*overlap + strip_width));
+    const int overlap = floor(w_cols / 2.0);
+    const int real_strip_width = strip_width + 2*overlap;
+    const int n_strips = ceil(cols / (double)strip_width);
 
-    double* const strips = (double*)malloc(sizeof(double) * rows * cols * n_strips);
+    double* strips = (double*)calloc(sizeof(double), rows * n_strips * real_strip_width);
     const size_t total_strip_px_count = rows * real_strip_width;
-#pragma omp parallel
-{
-    #pragma omp for
+    #pragma omp parallel for
     for (int strip = 0; strip < n_strips; strip++)
     {
         for (int row = 0; row < rows; row++)
         {
-            for (int col = 0; col < real_strip_width; col++)
+            for (int col = -overlap; col < strip_width + overlap; col++)
             {
-                const size_t global_col = (strip * strip_width + col - overlap + cols) % cols;
-                const size_t strips_ptr = strip * total_strip_px_count + row * real_strip_width + col;
-                strips[strips_ptr] = input(row, global_col);
+                const size_t global_col = (strip * strip_width + col + cols) % cols;
+                strips(row, col, strip) = input(row, global_col);
             }
         }
     }
-}
-#pragma omp parallel
-{
-    #pragma omp for
+
+    #pragma omp parallel for
     for (int strip = 0; strip < n_strips; strip++)
     {
-        for (int ki = w_rows - 1, kri = 0; ki >= 0; ki--, kri++)
+        for (int i = 0; i < rows; i++)
         {
-            for (unsigned int i = 0; i < rows; i++)
+            const int max_j = strip_width < (cols + 2*overlap)? strip_width : (cols + 2*overlap);
+            for (int j_strip = 0; j_strip < max_j; j_strip++)
             {
-                for (unsigned int j = 0; j < cols; j++)
+                double sum = 0;
+                for (int ki = w_rows - 1, kri = 0; ki >= 0; ki--, kri++)
                 {
-                    double sum = 0;
                     for (int kj = w_cols - 1, kcj = 0; kj >= 0; kj--, kcj++)
-                        sum += w(ki, kj) * input((i - w_rows / 2 + rows + kri), (j - w_cols / 2 + cols + kcj));
-                    result[i * cols + j] = sum;
+                    {
+                        const int strip_row = (i - w_rows / 2 + rows + kri) % rows;
+                        const int strip_col = j_strip - w_cols / 2 + kcj;
+                        sum += w(ki, kj) * strips(strip_row, strip_col, strip);
+                    }
                 }
+                int j = (strip * strip_width + j_strip) % cols;
+                result[i * cols + j] = sum;
             }
         }
     }
-}
     free(strips);
     return result;
 }
