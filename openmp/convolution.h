@@ -1,0 +1,17 @@
+#ifndef CONVOLUTION_H
+#define CONVOLUTION_H
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+double *convolve2d(double *result, const double *input, const double *w, const unsigned int rows, const unsigned int cols, const unsigned int w_rows, const unsigned int w_cols);
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif 
+
+
+
