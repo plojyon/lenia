@@ -1,9 +1,10 @@
 # Compiler
 CC = nvcc
+COMPUTE_VERSION = 70 # 61
 
 # Compiler flags
 LDLIBS = -lm
-CFLAGS = -Wno-deprecated-gpu-targets -gencode=arch=compute_70,code=sm_70 -O3 -Xcompiler --openmp,-Wall
+CFLAGS = -Wno-deprecated-gpu-targets -gencode=arch=compute_$(COMPUTE_VERSION),code=sm_$(COMPUTE_VERSION) -O3 -Xcompiler --openmp,-Wall
 
 SRC=src
 
