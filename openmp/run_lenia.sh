@@ -9,7 +9,7 @@ sbatch <<EOT
 #SBATCH --partition=gpu
 #SBATCH --job-name=spoon
 #SBATCH --ntasks=1
-#SBATCH --cpus-per-task=24
+#SBATCH --cpus-per-task=12
 #SBATCH --gpus=1
 #SBATCH --nodes=1
 #SBATCH --output=$1

@@ -31,8 +31,8 @@ for sha in "${SHAS[@]}"; do
     for strip in "${STRIPS[@]}"; do
         for run in $(seq 1 $RUNS); do
             pushd "lenia_$sha/openmp"
-            out_file="../results/${sha}_${strip}_${run}.txt"
-            ./run_lenia.sh "$out_file" *.c "$strip"
+            out_file="../../results/${sha}_${strip}_${run}.txt"
+            ../../run_lenia.sh "$out_file" *.c "$strip"
             popd
         done
     done
