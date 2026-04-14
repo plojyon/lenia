@@ -29,8 +29,7 @@ int main()
     float milliseconds = 0;
     cudaEventElapsedTime(&milliseconds, start, stop);
 
-    printf("Time: %f ms\n", milliseconds);
-    printf("Execution time: %.3f\n", stop - start);
+    printf("Execution time: %.3f\n", milliseconds);
     free(world);
     return 0;
 }
