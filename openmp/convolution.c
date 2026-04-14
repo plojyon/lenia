@@ -22,7 +22,7 @@ double *convolve2d(const double *strips, const double *w, const int rows, const 
 
     const int max_j = strip_width < (cols + 2*overlap)? strip_width : (cols + 2*overlap);
 
-    #pragma omp parallel for collapse(2)
+    #pragma omp parallel for collapse(2) num_threads(omp_get_max_threads())
     for (int strip = 0; strip < n_strips; strip++)
     {
         for (int i = 0; i < rows; i++)
@@ -73,7 +73,7 @@ double *strip(double *input, const int rows, const int cols, const int w_cols, c
     const size_t total_strip_px_count = rows * real_strip_width;
     
     double* const strips = (double*)calloc(sizeof(double), rows * n_strips * real_strip_width);
-    #pragma omp parallel for collapse(2)
+    #pragma omp parallel for collapse(2) num_threads(omp_get_max_threads())
     for (int strip = 0; strip < n_strips; strip++)
     {
         for (int row = 0; row < rows; row++)

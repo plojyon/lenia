@@ -7,7 +7,7 @@
 #include "convolution.h"
 
 // Uncomment to generate gif animation
-#define GENERATE_GIF
+// #define GENERATE_GIF
 
 // Function to calculate Gaussian
 inline double gauss(double x, double mu, double sigma)
@@ -101,6 +101,7 @@ double *evolve_lenia(const unsigned int rows, const unsigned int cols, const uns
         double *convolved_strips = convolve2d(world_strips, w, rows, cols, kernel_size, kernel_size, strip_width);
 
         // Evolution
+        #pragma omp parallel for num_threads(omp_get_max_threads())
         for (unsigned int i = 0; i < strip_array_len; i++)
         {
             world_strips[i] += dt * growth_lenia(convolved_strips[i]);
