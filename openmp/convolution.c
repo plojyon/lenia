@@ -10,7 +10,7 @@
 
 // Function to perform convolution on input using kernel w
 // Note that the kernel is flipped for convolution as per definition, and we use modular indexing for toroidal world
-double *convolve2d(double *result, const double *input, const double *w, const unsigned int rows, const unsigned int cols, const unsigned int w_rows, const unsigned int w_cols, const unsigned int strip_width)
+double *convolve2d(double *result, const double *input, const double *w, const int rows, const int cols, const int w_rows, const int w_cols, const int strip_width)
 {
     if (result == NULL || input == NULL || w == NULL) return NULL;
 
