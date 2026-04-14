@@ -10,7 +10,7 @@ LDLIBS = -lm
 CFLAGS = -Wno-deprecated-gpu-targets \
          -gencode=arch=compute_$(COMPUTE_VERSION),code=sm_$(COMPUTE_VERSION) \
          -O3 -Xcompiler --openmp,-Wall \
-         -DN=$(N)
+         -DLENIA_N=$(N)
 
 SRC=src
 

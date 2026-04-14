@@ -4,8 +4,8 @@
 #include <cuda_runtime.h>
 #include <cuda.h>
 
-#ifndef N
-#define N 256
+#ifndef LENIA_N
+#define LENIA_N 256
 #endif
 #define NUM_STEPS 100
 #define DT 0.1
@@ -14,7 +14,7 @@
 
 // Place two orbiums in the world with different angles. (y, x, angle)
 // Orbiums size is 20x20, supproted angles are 0, 90, 180 and 270 degrees.
-struct orbium_coo orbiums[NUM_ORBIUMS] = {{0, N / 3, 0}, {N / 3, 0, 180}};
+struct orbium_coo orbiums[NUM_ORBIUMS] = {{0, LENIA_N / 3, 0}, {LENIA_N / 3, 0, 180}};
 
 int main()
 {
@@ -24,7 +24,7 @@ int main()
     cudaEventRecord(start);
 
     // Run the simulation
-    double *world = evolve_lenia(N, N, NUM_STEPS, DT, KERNEL_SIZE, orbiums, NUM_ORBIUMS);
+    double *world = evolve_lenia(LENIA_N, LENIA_N, NUM_STEPS, DT, KERNEL_SIZE, orbiums, NUM_ORBIUMS);
 
     cudaEventRecord(stop);
     cudaEventSynchronize(stop);
