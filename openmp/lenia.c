@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
+#include <omp.h>
 #include "lenia.h"
 #include "orbium.h"
 #include "gifenc.h"
