@@ -45,14 +45,14 @@ double *convolve2d(double *result, const double *strips, const double *w, const 
     return result;
 }
 
-unsigned int get_n_strips(const unsigned int cols, const unsigned int strip_width)
+int get_n_strips(const int cols, const int strip_width)
 {
     return ceil(cols / (double)strip_width);
 }
 
 
 // Divide image into strips for cache optimization
-double *strip(double *input, const unsigned int rows, const unsigned int cols, const unsigned int w_cols, const unsigned int strip_width)
+double *strip(double *input, const int rows, const int cols, const int w_cols, const int strip_width)
 {
     const int overlap = floor(w_cols / 2.0);
     const int real_strip_width = strip_width + 2*overlap;
