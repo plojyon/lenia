@@ -1,6 +1,6 @@
 # Compiler
 CC = nvcc
-COMPUTE_VERSION = 70 # 61
+COMPUTE_VERSION = 70
 
 # Compiler flags
 LDLIBS = -lm
