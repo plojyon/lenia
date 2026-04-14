@@ -1,7 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <omp.h>
 #include "lenia.h"
+#include <cuda_runtime.h>
+#include <cuda.h>
 
 #define N 256
 #define NUM_STEPS 100
@@ -15,10 +16,20 @@ struct orbium_coo orbiums[NUM_ORBIUMS] = {{0, N / 3, 0}, {N / 3, 0, 180}};
 
 int main()
 {
-    double start = omp_get_wtime();
+    cudaEvent_t start, stop;
+    cudaEventCreate(&start);
+    cudaEventCreate(&stop);
+    cudaEventRecord(start);
+
     // Run the simulation
     double *world = evolve_lenia(N, N, NUM_STEPS, DT, KERNEL_SIZE, orbiums, NUM_ORBIUMS);
-    double stop = omp_get_wtime();
+
+    cudaEventRecord(stop);
+    cudaEventSynchronize(stop);
+    float milliseconds = 0;
+    cudaEventElapsedTime(&milliseconds, start, stop);
+
+    printf("Time: %f ms\n", milliseconds);
     printf("Execution time: %.3f\n", stop - start);
     free(world);
     return 0;
