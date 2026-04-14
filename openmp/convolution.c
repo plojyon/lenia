@@ -8,15 +8,17 @@
 #define w(r, c) (w[(r) * w_cols + (c)])
 #define input(r, c) (input[((r) % rows) * cols + ((c) % cols)])
 #define strips(r, c, s) (strips[(int)((s) * total_strip_px_count + (r) * real_strip_width + (c) + overlap)])
+#define output_strips(r, c, s) (output_strips[(int)((s) * total_strip_px_count + (r) * real_strip_width + (c) + overlap)])
 
 // Function to perform convolution on input using kernel w
 // Note that the kernel is flipped for convolution as per definition, and we use modular indexing for toroidal world
-double *convolve2d(double *result, const double *strips, const double *w, const int rows, const int cols, const int w_rows, const int w_cols, const int strip_width)
+double *convolve2d(const double *strips, const double *w, const int rows, const int cols, const int w_rows, const int w_cols, const int strip_width)
 {
     const int n_strips = get_n_strips(cols, strip_width);
     const int overlap = floor(w_cols / 2.0);
     const int real_strip_width = strip_width + 2*overlap;
     const size_t total_strip_px_count = rows * real_strip_width;
+    double *output_strips = (double *)calloc(rows * n_strips * real_strip_width, sizeof(double));
 
     const int max_j = strip_width < (cols + 2*overlap)? strip_width : (cols + 2*overlap);
 
@@ -37,12 +39,23 @@ double *convolve2d(double *result, const double *strips, const double *w, const 
                         sum += w(ki, kj) * strips(strip_row, strip_col, strip);
                     }
                 }
-                int j = (strip * strip_width + j_strip) % cols;
-                result[i * cols + j] = sum;
+
+                output_strips(i, j_strip, strip) = sum;
+
+                if (j_strip < overlap)
+                {
+                    int left_strip = (strip - 1 + n_strips) % n_strips;
+                    output_strips(i, strip_width + j_strip, left_strip) = sum;
+                }
+                if (j_strip >= strip_width - overlap)
+                {
+                    int right_strip = (strip + 1) % n_strips;
+                    output_strips(i, j_strip - strip_width, right_strip) = sum;
+                }
             }
         }
     }
-    return result;
+    return output_strips;
 }
 
 int get_n_strips(const int cols, const int strip_width)

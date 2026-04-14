@@ -61,6 +61,11 @@ double *generate_kernel(double *K, const unsigned int size)
 // Function to evolve Lenia
 double *evolve_lenia(const unsigned int rows, const unsigned int cols, const unsigned int steps, const double dt, const unsigned int kernel_size, const struct orbium_coo *orbiums, const unsigned int num_orbiums, const unsigned int strip_width)
 {
+    const int overlap = floor(kernel_size / 2.0);
+    const int real_strip_width = strip_width + 2*overlap;
+    const int n_strips = get_n_strips(cols, strip_width);
+    const int total_strip_px_count = rows * real_strip_width;
+    const int strip_array_len = rows * n_strips * real_strip_width;
 
 #ifdef GENERATE_GIF
     ge_GIF *gif = ge_new_gif(
@@ -76,7 +81,6 @@ double *evolve_lenia(const unsigned int rows, const unsigned int cols, const uns
     // Allocate memory
     double *w = (double *)calloc(kernel_size * kernel_size, sizeof(double));
     double *world = (double *)calloc(rows * cols, sizeof(double));
-    double *tmp = (double *)calloc(rows * cols, sizeof(double));
 
     // Generate convolution kernel
     w=generate_kernel(w,kernel_size);
@@ -87,25 +91,36 @@ double *evolve_lenia(const unsigned int rows, const unsigned int cols, const uns
         world = place_orbium(world, rows, cols, orbiums[o].row, orbiums[o].col, orbiums[o].angle);
     }
 
-    double* world_strips = strip(world, rows, cols, kernel_size, strip_width);
+    double *world_strips = strip(world, rows, cols, kernel_size, strip_width);
+    free(world);
 
     // Lenia Simulation
     for (unsigned int step = 0; step < steps; step++)
     {
         // Convolution
-        tmp = convolve2d(tmp, world_strips, w, rows, cols, kernel_size, kernel_size, strip_width);
+        double *convolved_strips = convolve2d(world_strips, w, rows, cols, kernel_size, kernel_size, strip_width);
+        free(world_strips);
+        world_strips = convolved_strips;
 
         // Evolution
-        for (unsigned int i = 0; i < rows; i++)
+        for (unsigned int i = 0; i < strip_array_len; i++)
         {
-            for (unsigned int j = 0; j < cols; j++)
-            {
-                world[i * rows + j] += dt * growth_lenia(tmp[i * rows + j]);
-                world[i * rows + j] = fmin(1, fmax(0, world[i * rows + j])); // Clip between 0 and 1
+            world_strips[i] += dt * growth_lenia(world_strips[i]);
+            world_strips[i] = fmin(1, fmax(0, world_strips[i])); // Clip between 0 and 1
 #ifdef GENERATE_GIF
-                gif->frame[i * rows + j] = world[i * rows + j] * 255;
-#endif
+            const int strip = i / total_strip_px_count;
+            const int in_strip = i % total_strip_px_count;
+            const int y = in_strip / real_strip_width;
+            const int j_strip = (in_strip % real_strip_width) - overlap;
+            if (j_strip >= 0 && j_strip < strip_width)
+            {
+                const int x = strip * strip_width + j_strip;
+                if (x < cols)
+                {
+                    gif->frame[y * cols + x] = world_strips[i] * 255;
+                }
             }
+#endif
         }
 #ifdef GENERATE_GIF
         ge_add_frame(gif, 5);
@@ -115,6 +130,5 @@ double *evolve_lenia(const unsigned int rows, const unsigned int cols, const uns
     ge_close_gif(gif);
 #endif
     free(w);
-    free(tmp);
-    return world;
+    return world_strips;
 }
