@@ -3,7 +3,6 @@
 #include <omp.h>
 #include "lenia.h"
 
-#define N 256
 #define NUM_STEPS 100
 #define DT 0.1
 #define KERNEL_SIZE 26
@@ -11,7 +10,6 @@
 
 // Place two orbiums in the world with different angles. (y, x, angle)
 // Orbiums size is 20x20, supproted angles are 0, 90, 180 and 270 degrees.
-struct orbium_coo orbiums[NUM_ORBIUMS] = {{0, N / 3, 0}, {N / 3, 0, 180}};
 
 // #define NUM_ORBIUMS 15
 // struct orbium_coo orbiums[NUM_ORBIUMS] = {
@@ -35,7 +33,10 @@ int main(int argc, char *argv[])
 {
     double start = omp_get_wtime();
     // Run the simulation
-    unsigned int strip_width = argc > 1? atoi(argv[1]) : 100000;
+    unsigned int N = argc > 1? atoi(argv[1]) : 256;
+    unsigned int strip_width = argc > 2? atoi(argv[2]) : 100000;
+    struct orbium_coo orbiums[NUM_ORBIUMS] = {{0, N / 3, 0}, {N / 3, 0, 180}};
+
     double *world = evolve_lenia(N, N, NUM_STEPS, DT, KERNEL_SIZE, orbiums, NUM_ORBIUMS, strip_width);
     double stop = omp_get_wtime();
     printf("Execution time: %.3f\n", stop - start);
