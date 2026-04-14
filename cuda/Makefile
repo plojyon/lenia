@@ -11,6 +11,7 @@ CFLAGS = -Wno-deprecated-gpu-targets \
          -gencode=arch=compute_$(COMPUTE_VERSION),code=sm_$(COMPUTE_VERSION) \
          -O3 -Xcompiler --openmp,-Wall \
          -DLENIA_N=$(N)
+		 -USE_CACHE=$(USE_CACHE)
 
 SRC=src
 

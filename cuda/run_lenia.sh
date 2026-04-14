@@ -2,6 +2,7 @@
 
 N=$1
 OUT_FILE=$2
+USE_CACHE=$3
 
 sbatch <<EOT
 #!/bin/bash
@@ -18,7 +19,7 @@ sbatch <<EOT
 module load CUDA
 
 #BUILD
-make N=${N}
+make N=${N} USE_CACHE=${USE_CACHE}
 
 #RUN
 srun ./lenia.out

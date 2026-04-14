@@ -12,7 +12,7 @@
 #include <cuda.h>
 
 // Uncomment to generate gif animation
-#define GENERATE_GIF
+// #define GENERATE_GIF
 
 // For prettier indexing syntax
 #define w(r, c) (kernel[(r) * kernel_w + (c)])
@@ -72,7 +72,7 @@ double *generate_kernel(double *K, const unsigned int size)
 #define block_start_x (blockIdx.x * blockDim.x)
 #define shared_mem(i, j) shm_input[(i) * shared_mem_size_h + (j)]
 
-__global__ void convolve2d(double *input, double *output, double *kernel, int input_h, int input_w, int kernel_h, int kernel_w, int output_h, int output_w)
+__global__ void convolve2dCache(double *input, double *output, double *kernel, int input_h, int input_w, int kernel_h, int kernel_w, int output_h, int output_w)
 {
     int i = block_start_y + threadIdx.y;
     int j = block_start_x + threadIdx.x;
@@ -122,29 +122,29 @@ __global__ void convolve2d(double *input, double *output, double *kernel, int in
 }
 
 // This implementation does not cache to shared memory
-// __global__ void convolve2d(double *input, double *output, double *kernel, int input_h, int input_w, int kernel_h, int kernel_w, int output_h, int output_w)
-// {
-//     int i = block_start_y + threadIdx.y;
-//     int j = block_start_x + threadIdx.x;
+__global__ void convolve2d(double *input, double *output, double *kernel, int input_h, int input_w, int kernel_h, int kernel_w, int output_h, int output_w)
+{
+    int i = block_start_y + threadIdx.y;
+    int j = block_start_x + threadIdx.x;
 
-//     if (i >= input_h || j >= input_w)
-//         return;
+    if (i >= input_h || j >= input_w)
+        return;
 
-//     double sum = 0;
+    double sum = 0;
 
-//     int x_offset = kernel_w / 2;
-//     int y_offset = kernel_h / 2;
+    int x_offset = kernel_w / 2;
+    int y_offset = kernel_h / 2;
 
-//     for (int ki = kernel_h - 1, kri = 0; ki >= 0; ki--, kri++)
-//     {
-//         for (int kj = kernel_w - 1, kcj = 0; kj >= 0; kj--, kcj++)
-//         {
-//             sum += w(ki, kj) * input((i + (kri - y_offset) + input_h), (j - (kcj - x_offset) + input_w));
-//         }
-//     }
+    for (int ki = kernel_h - 1, kri = 0; ki >= 0; ki--, kri++)
+    {
+        for (int kj = kernel_w - 1, kcj = 0; kj >= 0; kj--, kcj++)
+        {
+            sum += w(ki, kj) * input((i + (kri - y_offset) + input_h), (j - (kcj - x_offset) + input_w));
+        }
+    }
 
-//     output[i * input_w + j] = sum;
-// }
+    output[i * input_w + j] = sum;
+}
 
 void check_cuda_error(const char *op, cudaError_t err)
 {
@@ -155,7 +155,7 @@ void check_cuda_error(const char *op, cudaError_t err)
 }
 
 // Function to evolve Lenia
-double *evolve_lenia(const unsigned int rows, const unsigned int cols, const unsigned int steps, const double dt, const unsigned int kernel_size, const struct orbium_coo *orbiums, const unsigned int num_orbiums)
+double *evolve_lenia(const unsigned int rows, const unsigned int cols, const unsigned int steps, const double dt, const unsigned int kernel_size, const struct orbium_coo *orbiums, const unsigned int num_orbiums, bool use_cache)
 {
 
 #ifdef GENERATE_GIF
@@ -212,7 +212,14 @@ double *evolve_lenia(const unsigned int rows, const unsigned int cols, const uns
         int shared_mem_size = (BLOCK_SIZE + kernel_size - 1) * (BLOCK_SIZE + kernel_size - 1) * sizeof(double);
 
         // Convolution
-        convolve2d<<<grid, threads, shared_mem_size>>>(cu_world, cu_tmp, cu_w, rows, cols, kernel_size, kernel_size, rows, cols);
+        if (use_cache)
+        {
+            convolve2dCache<<<grid, threads, shared_mem_size>>>(cu_world, cu_tmp, cu_w, rows, cols, kernel_size, kernel_size, rows, cols);
+        }
+        else
+        {
+            convolve2d<<<grid, threads, shared_mem_size>>>(cu_world, cu_tmp, cu_w, rows, cols, kernel_size, kernel_size, rows, cols);
+        }
 
         cudaError_t error = cudaGetLastError();
         if (error != cudaSuccess)

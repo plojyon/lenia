@@ -24,7 +24,7 @@ int main()
     cudaEventRecord(start);
 
     // Run the simulation
-    double *world = evolve_lenia(LENIA_N, LENIA_N, NUM_STEPS, DT, KERNEL_SIZE, orbiums, NUM_ORBIUMS);
+    double *world = evolve_lenia(LENIA_N, LENIA_N, NUM_STEPS, DT, KERNEL_SIZE, orbiums, NUM_ORBIUMS, USE_CACHE);
 
     cudaEventRecord(stop);
     cudaEventSynchronize(stop);
