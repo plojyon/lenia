@@ -99,13 +99,11 @@ double *evolve_lenia(const unsigned int rows, const unsigned int cols, const uns
     {
         // Convolution
         double *convolved_strips = convolve2d(world_strips, w, rows, cols, kernel_size, kernel_size, strip_width);
-        free(world_strips);
-        world_strips = convolved_strips;
 
         // Evolution
         for (unsigned int i = 0; i < strip_array_len; i++)
         {
-            world_strips[i] += dt * growth_lenia(world_strips[i]);
+            world_strips[i] += dt * growth_lenia(convolved_strips[i]);
             world_strips[i] = fmin(1, fmax(0, world_strips[i])); // Clip between 0 and 1
 #ifdef GENERATE_GIF
             const int strip = i / total_strip_px_count;
@@ -122,6 +120,7 @@ double *evolve_lenia(const unsigned int rows, const unsigned int cols, const uns
             }
 #endif
         }
+        free(convolved_strips);
 #ifdef GENERATE_GIF
         ge_add_frame(gif, 5);
 #endif
