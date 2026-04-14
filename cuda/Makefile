@@ -1,37 +1,37 @@
+# Grid size (default)
+N ?= 256
+
 # Compiler
 CC = nvcc
 COMPUTE_VERSION = 70
 
 # Compiler flags
 LDLIBS = -lm
-CFLAGS = -Wno-deprecated-gpu-targets -gencode=arch=compute_$(COMPUTE_VERSION),code=sm_$(COMPUTE_VERSION) -O3 -Xcompiler --openmp,-Wall
+CFLAGS = -Wno-deprecated-gpu-targets \
+         -gencode=arch=compute_$(COMPUTE_VERSION),code=sm_$(COMPUTE_VERSION) \
+         -O3 -Xcompiler --openmp,-Wall \
+         -DN=$(N)
 
 SRC=src
 
-# Source files
 SRCS=$(wildcard $(SRC)/*.cu)
 SRCS+=$(wildcard $(SRC)/*.c)
 
-# Header files
 HDRS = $(wildcard $(SRC)/*.h)
 
-# Object files
 OBJS_1 = $(SRCS:$(SRC)/%.c=%.o)
 OBJS = $(OBJS_1:$(SRC)/%.cu=%.o)
 
-# Executable name
 TARGET = lenia.out
 
-# Build target
 $(TARGET): $(OBJS)
 	$(CC) $(CFLAGS) $(OBJS) -o $(TARGET) $(LDLIBS)
 
-# Compile source files to object files
 %.o: $(SRC)/%.cu $(HDRS)
 	$(CC) $(CFLAGS) -c -o $@ $<
 
 %.o: $(SRC)/%.c $(HDRS)
 	$(CC) $(CFLAGS) -c -o $@ $<
-# Clean
+
 clean:
 	rm -f $(OBJS) $(TARGET)

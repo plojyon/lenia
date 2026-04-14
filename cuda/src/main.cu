@@ -4,7 +4,9 @@
 #include <cuda_runtime.h>
 #include <cuda.h>
 
+#ifndef N
 #define N 256
+#endif
 #define NUM_STEPS 100
 #define DT 0.1
 #define KERNEL_SIZE 26
