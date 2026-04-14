@@ -1,6 +1,6 @@
 #!/bin/bash
 
-STRIPS=(1 2 3 4 5 8 10 12 14 16 20 24 32 48 64 128)
+STRIPS=(2 4 8 16 24 48 128)
 # 93d24c3 (HEAD -> master, origin/master, origin/HEAD) Merge pull request #1 from jakic12/master
 # 57cf6f9 Merge branch 'master' into master
 # dce13d6 (fixes) Add evaluations
@@ -32,7 +32,7 @@ for sha in "${SHAS[@]}"; do
         for run in $(seq 1 $RUNS); do
             pushd "lenia_$sha/openmp"
             out_file="../../results/${sha}_${strip}_${run}.txt"
-            ../../run_lenia.sh "$out_file" *.c "$strip"
+            ../../run_lenia.sh "$out_file" \*.c "$strip"
             popd
         done
     done
